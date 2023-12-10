@@ -1,6 +1,6 @@
 package database_details;
 
-import connecting.Connecting;
+import connecting.Connexion;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -19,7 +19,8 @@ public class DatabaseDetails {
     public DatabaseDetails() {
     }
 
-    public DatabaseDetails(String databaseName, String tableName, String columnName, String columnType, String columnSize, String columnNullable, String columnRemarks) {
+    public DatabaseDetails(String databaseName, String tableName, String columnName, String columnType,
+            String columnSize, String columnNullable, String columnRemarks) {
         this.databaseName = databaseName;
         this.tableName = tableName;
         this.columnName = columnName;
@@ -85,31 +86,14 @@ public class DatabaseDetails {
         this.columnRemarks = columnRemarks;
     }
 
-    public String toString() {
-        return "DatabaseDetails{" +
-                "databaseName='" + databaseName + '\'' +
-                ", tableName='" + tableName + '\'' +
-                ", columnName='" + columnName + '\'' +
-                ", columnType='" + columnType + '\'' +
-                ", columnSize='" + columnSize + '\'' +
-                ", columnNullable='" + columnNullable + '\'' +
-                ", columnRemarks='" + columnRemarks + '\'' +
-                '}';
-    }
-
-    public String toCSV() {
-        return databaseName + "," + tableName + "," + columnName + "," + columnType + "," + columnSize + "," + columnNullable + "," + columnRemarks;
-    }
-
-    public ArrayList<DatabaseDetails> getDatabaseDetailsFromDatabase() throws Exception{
+    public static ArrayList<DatabaseDetails> getDatabaseDetailsFromDatabase() throws Exception {
         ArrayList<DatabaseDetails> databaseDetails = new ArrayList<>();
         try {
-            Connection connection = Connecting.getConnection("postgres");
+            Connection connection = Connexion.getConnection("postgres");
             DatabaseMetaData metaData = connection.getMetaData();
-            ResultSet resultSet = metaData.getTables(null, null, "%", new String[]{"TABLE"});
+            ResultSet resultSet = metaData.getTables(null, null, "%", new String[] { "TABLE" });
             while (resultSet.next()) {
                 String tableName = resultSet.getString(3);
-                System.out.println(tableName);
                 ResultSet columnsResultSet = metaData.getColumns(null, null, tableName, null);
                 while (columnsResultSet.next()) {
                     DatabaseDetails databaseDetail = new DatabaseDetails();
@@ -120,30 +104,11 @@ public class DatabaseDetails {
                     databaseDetail.setColumnNullable(columnsResultSet.getString(11));
                     databaseDetail.setColumnRemarks(columnsResultSet.getString(12));
                     databaseDetails.add(databaseDetail);
-
-                    System.out.println(databaseDetail.getColumnName() + " " + databaseDetail.getColumnType() + " " + databaseDetail.getColumnSize() + " " + databaseDetail.getColumnNullable() + " " + databaseDetail.getColumnRemarks());
                 }
             }
         } catch (Exception e) {
             throw e;
         }
         return databaseDetails;
-    }
-
-    public String makeCamelCaseIfContainsUnderscore(String string) {
-        if (string.contains("_")) {
-            String[] splitString = string.split("_");
-            String camelCaseString = "";
-            for (int i = 0; i < splitString.length; i++) {
-                if (i == 0) {
-                    camelCaseString += splitString[i];
-                } else {
-                    camelCaseString += splitString[i].substring(0, 1).toUpperCase() + splitString[i].substring(1);
-                }
-            }
-            return camelCaseString;
-        } else {
-            return string;
-        }
     }
 }
